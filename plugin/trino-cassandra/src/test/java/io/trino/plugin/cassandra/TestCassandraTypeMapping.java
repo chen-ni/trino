@@ -61,7 +61,6 @@ import static io.trino.spi.type.TinyintType.TINYINT;
 import static io.trino.spi.type.UuidType.UUID;
 import static io.trino.spi.type.VarbinaryType.VARBINARY;
 import static io.trino.spi.type.VarcharType.VARCHAR;
-import static io.trino.spi.type.VarcharType.createVarcharType;
 import static java.lang.String.format;
 import static java.time.ZoneOffset.UTC;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -392,14 +391,14 @@ public class TestCassandraTypeMapping
     public void testCassandraInet()
     {
         SqlDataTypeTest.create()
-                .addRoundTrip("inet", "NULL", createVarcharType(45), "CAST(NULL AS varchar(45))")
-                .addRoundTrip("inet", "'0.0.0.0'", createVarcharType(45), "CAST('0.0.0.0' AS varchar(45))")
-                .addRoundTrip("inet", "'116.253.40.133'", createVarcharType(45), "CAST('116.253.40.133' AS varchar(45))")
-                .addRoundTrip("inet", "'255.255.255.255'", createVarcharType(45), "CAST('255.255.255.255' AS varchar(45))")
-                .addRoundTrip("inet", "'::'", createVarcharType(45), "CAST('::' AS varchar(45))")
-                .addRoundTrip("inet", "'2001:44c8:129:2632:33:0:252:2'", createVarcharType(45), "CAST('2001:44c8:129:2632:33:0:252:2' AS varchar(45))")
-                .addRoundTrip("inet", "'ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff'", createVarcharType(45), "CAST('ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff' AS varchar(45))")
-                .addRoundTrip("inet", "'ffff:ffff:ffff:ffff:ffff:ffff:255.255.255.255'", createVarcharType(45), "CAST('ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff' AS varchar(45))")
+                .addRoundTrip("inet", "NULL", CassandraTypes.iNET.getTrinoType(), "CAST(NULL AS ipaddress)")
+                .addRoundTrip("inet", "'0.0.0.0'", CassandraTypes.iNET.getTrinoType(), "CAST('0.0.0.0' AS ipaddress)")
+                .addRoundTrip("inet", "'116.253.40.133'", CassandraTypes.iNET.getTrinoType(), "CAST('116.253.40.133' AS ipaddress)")
+                .addRoundTrip("inet", "'255.255.255.255'", CassandraTypes.iNET.getTrinoType(), "CAST('255.255.255.255' AS ipaddress)")
+                .addRoundTrip("inet", "'::'", CassandraTypes.iNET.getTrinoType(), "CAST('::' AS ipaddress)")
+                .addRoundTrip("inet", "'2001:44c8:129:2632:33:0:252:2'", CassandraTypes.iNET.getTrinoType(), "CAST('2001:44c8:129:2632:33:0:252:2' AS ipaddress)")
+                .addRoundTrip("inet", "'ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff'", CassandraTypes.iNET.getTrinoType(), "CAST('ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff' AS ipaddress)")
+                .addRoundTrip("inet", "'ffff:ffff:ffff:ffff:ffff:ffff:255.255.255.255'", CassandraTypes.iNET.getTrinoType(), "CAST('ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff' AS ipaddress)")
                 .execute(getQueryRunner(), cassandraCreateAndInsert("tpch.test_inet"));
     }
 

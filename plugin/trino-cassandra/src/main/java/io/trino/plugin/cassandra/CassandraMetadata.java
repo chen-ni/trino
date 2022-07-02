@@ -17,6 +17,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.airlift.json.JsonCodec;
 import io.airlift.slice.Slice;
+import io.trino.plugin.cassandra.CassandraType.Kind;
 import io.trino.plugin.cassandra.util.CassandraCqlUtils;
 import io.trino.spi.TrinoException;
 import io.trino.spi.connector.ColumnHandle;
@@ -40,7 +41,10 @@ import io.trino.spi.connector.SchemaTablePrefix;
 import io.trino.spi.connector.TableNotFoundException;
 import io.trino.spi.predicate.TupleDomain;
 import io.trino.spi.statistics.ComputedStatistics;
+import io.trino.spi.type.StandardTypes;
 import io.trino.spi.type.Type;
+import io.trino.spi.type.TypeManager;
+import io.trino.spi.type.TypeSignature;
 
 import javax.inject.Inject;
 
@@ -83,6 +87,7 @@ public class CassandraMetadata
 
     @Inject
     public CassandraMetadata(
+            TypeManager typeManager,
             CassandraSession cassandraSession,
             CassandraPartitionManager partitionManager,
             JsonCodec<List<ExtraColumnMetadata>> extraColumnMetadataCodec,
@@ -92,6 +97,8 @@ public class CassandraMetadata
         this.cassandraSession = requireNonNull(cassandraSession, "cassandraSession is null");
         this.allowDropTable = requireNonNull(config, "config is null").getAllowDropTable();
         this.extraColumnMetadataCodec = requireNonNull(extraColumnMetadataCodec, "extraColumnMetadataCodec is null");
+
+        CassandraTypes.iNET = new CassandraType(Kind.INET, typeManager.getType(new TypeSignature(StandardTypes.IPADDRESS)));
     }
 
     @Override

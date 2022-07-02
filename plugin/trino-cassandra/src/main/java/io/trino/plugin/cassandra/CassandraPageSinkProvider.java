@@ -19,6 +19,7 @@ import io.trino.spi.connector.ConnectorPageSink;
 import io.trino.spi.connector.ConnectorPageSinkProvider;
 import io.trino.spi.connector.ConnectorSession;
 import io.trino.spi.connector.ConnectorTransactionHandle;
+import io.trino.spi.type.TypeManager;
 
 import javax.inject.Inject;
 
@@ -28,12 +29,17 @@ import static java.util.Objects.requireNonNull;
 public class CassandraPageSinkProvider
         implements ConnectorPageSinkProvider
 {
+    private final TypeManager typeManager;
     private final CassandraSession cassandraSession;
     private final int batchSize;
 
     @Inject
-    public CassandraPageSinkProvider(CassandraSession cassandraSession, CassandraClientConfig cassandraClientConfig)
+    public CassandraPageSinkProvider(
+            TypeManager typeManager,
+            CassandraSession cassandraSession,
+            CassandraClientConfig cassandraClientConfig)
     {
+        this.typeManager = requireNonNull(typeManager, "typeManager is null");
         this.cassandraSession = requireNonNull(cassandraSession, "cassandraSession is null");
         this.batchSize = requireNonNull(cassandraClientConfig, "cassandraClientConfig is null").getBatchSize();
     }
@@ -46,6 +52,7 @@ public class CassandraPageSinkProvider
         CassandraOutputTableHandle handle = (CassandraOutputTableHandle) tableHandle;
 
         return new CassandraPageSink(
+                typeManager,
                 cassandraSession,
                 cassandraSession.getProtocolVersion(),
                 handle.getSchemaName(),
@@ -64,6 +71,7 @@ public class CassandraPageSinkProvider
         CassandraInsertTableHandle handle = (CassandraInsertTableHandle) tableHandle;
 
         return new CassandraPageSink(
+                typeManager,
                 cassandraSession,
                 cassandraSession.getProtocolVersion(),
                 handle.getSchemaName(),
