@@ -77,6 +77,7 @@ public class CassandraClientModule
         binder.bind(CassandraPageSinkProvider.class).in(Scopes.SINGLETON);
         binder.bind(CassandraPartitionManager.class).in(Scopes.SINGLETON);
         binder.bind(CassandraSessionProperties.class).in(Scopes.SINGLETON);
+        binder.bind(CassandraType.class).in(Scopes.SINGLETON);
 
         configBinder(binder).bindConfig(CassandraClientConfig.class);
 
@@ -105,7 +106,7 @@ public class CassandraClientModule
 
     @Singleton
     @Provides
-    public static CassandraSession createCassandraSession(CassandraClientConfig config, JsonCodec<List<ExtraColumnMetadata>> extraColumnMetadataCodec)
+    public static CassandraSession createCassandraSession(CassandraType cassandraTypeManager, CassandraClientConfig config, JsonCodec<List<ExtraColumnMetadata>> extraColumnMetadataCodec)
     {
         requireNonNull(config, "config is null");
         requireNonNull(extraColumnMetadataCodec, "extraColumnMetadataCodec is null");
@@ -174,7 +175,8 @@ public class CassandraClientModule
                             createInetSocketAddress(contactPoint, config.getNativeProtocolPort())));
                     return cqlSessionBuilder.build();
                 },
-                config.getNoHostAvailableRetryTimeout());
+                config.getNoHostAvailableRetryTimeout(),
+                cassandraTypeManager);
     }
 
     private static Optional<SSLContext> buildSslContext(
