@@ -22,6 +22,7 @@ import com.datastax.oss.driver.api.core.cql.SimpleStatement;
 import com.datastax.oss.driver.api.querybuilder.term.Term;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.net.InetAddresses;
 import com.google.common.primitives.Shorts;
 import com.google.common.primitives.SignedBytes;
 import io.airlift.slice.Slice;
@@ -29,7 +30,10 @@ import io.trino.spi.Page;
 import io.trino.spi.TrinoException;
 import io.trino.spi.block.Block;
 import io.trino.spi.connector.ConnectorPageSink;
+import io.trino.spi.type.StandardTypes;
 import io.trino.spi.type.Type;
+import io.trino.spi.type.TypeManager;
+import io.trino.spi.type.TypeSignature;
 import io.trino.spi.type.UuidType;
 import io.trino.spi.type.VarcharType;
 
@@ -71,6 +75,7 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 public class CassandraPageSink
         implements ConnectorPageSink
 {
+    private final TypeManager typeManager;
     private final CassandraSession cassandraSession;
     private final PreparedStatement insert;
     private final List<Type> columnTypes;
@@ -80,6 +85,7 @@ public class CassandraPageSink
     private final BatchStatementBuilder batchStatement = BatchStatement.builder(DefaultBatchType.LOGGED);
 
     public CassandraPageSink(
+            TypeManager typeManager,
             CassandraSession cassandraSession,
             ProtocolVersion protocolVersion,
             String schemaName,
@@ -89,6 +95,7 @@ public class CassandraPageSink
             boolean generateUuid,
             int batchSize)
     {
+        this.typeManager = requireNonNull(typeManager, "typeManager is null");
         this.cassandraSession = requireNonNull(cassandraSession, "cassandraSession");
         requireNonNull(schemaName, "schemaName is null");
         requireNonNull(tableName, "tableName is null");
@@ -184,6 +191,9 @@ public class CassandraPageSink
         }
         else if (UuidType.UUID.equals(type)) {
             values.add(trinoUuidToJavaUuid(type.getSlice(block, position)));
+        }
+        else if (typeManager.getType(new TypeSignature(StandardTypes.IPADDRESS)).equals(type)) {
+            values.add(InetAddresses.forString((String) type.getObjectValue(null, block, position)));
         }
         else {
             throw new TrinoException(NOT_SUPPORTED, "Unsupported column type: " + type.getDisplayName());
